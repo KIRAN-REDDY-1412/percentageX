@@ -240,6 +240,32 @@ export function CollegeProvider({ children }) {
     );
   };
 
+  const updateCollegeDetails = async (collegeId, updatedData) => {
+    try {
+      const res = await fetch(`/api/colleges/${collegeId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setColleges((prev) =>
+          prev.map((c) => (c.id === collegeId ? { ...c, ...data } : c))
+        );
+        return { success: true, college: data };
+      } else {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to update college on server");
+      }
+    } catch (e) {
+      console.warn("API updateCollegeDetails fallback:", e);
+      setColleges((prev) =>
+        prev.map((c) => (c.id === collegeId ? { ...c, ...updatedData } : c))
+      );
+      return { success: true, warning: e.message };
+    }
+  };
+
   const setVerifiedStudent = (verificationData) => {
     setVerifiedStudentData(verificationData);
     if (verificationData?.student) {
@@ -724,6 +750,7 @@ export function CollegeProvider({ children }) {
         fetchColleges,
         createCollege,
         updateCollegeStatus,
+        updateCollegeDetails,
         verifiedStudentData,
         setVerifiedStudent,
       }}
