@@ -1,0 +1,765 @@
+/* ==========================================================================
+   PercentageX — Modern Public Landing & Portal Selection Styles
+   Light-first SaaS aesthetic, smooth keyframes, GPU-accelerated motion
+   ========================================================================== */
+
+.px-landing-wrapper {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: #f8fafc;
+  color: #0f172a;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Ambient Background Animation (Rings, Blobs & Grid)
+   -------------------------------------------------------------------------- */
+.px-ambient-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.px-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(to right, rgba(37, 99, 235, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black 40%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 40%, transparent 80%);
+}
+
+.px-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  will-change: transform;
+}
+
+.px-blob-1 {
+  width: 520px;
+  height: 520px;
+  top: -120px;
+  left: -80px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.22) 0%, rgba(99, 102, 241, 0.12) 60%, transparent 80%);
+  animation: pxFloatBlob1 24s ease-in-out infinite alternate;
+}
+
+.px-blob-2 {
+  width: 580px;
+  height: 580px;
+  top: 15%;
+  right: -140px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.2) 0%, rgba(16, 185, 129, 0.1) 60%, transparent 80%);
+  animation: pxFloatBlob2 28s ease-in-out infinite alternate;
+}
+
+.px-blob-3 {
+  width: 480px;
+  height: 480px;
+  bottom: -100px;
+  left: 30%;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.16) 0%, rgba(37, 99, 235, 0.08) 60%, transparent 80%);
+  animation: pxFloatBlob3 32s ease-in-out infinite alternate;
+}
+
+/* Subtle Geometric Orbit Rings */
+.px-orbit-ring {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px dashed rgba(37, 99, 235, 0.12);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.px-orbit-ring-1 {
+  width: 820px;
+  height: 820px;
+  animation: pxSpinSlow 80s linear infinite;
+}
+
+.px-orbit-ring-2 {
+  width: 1140px;
+  height: 1140px;
+  border-style: dotted;
+  border-color: rgba(99, 102, 241, 0.09);
+  animation: pxSpinReverse 110s linear infinite;
+}
+
+@keyframes pxFloatBlob1 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(60px, 40px, 0) scale(1.08); }
+  100% { transform: translate3d(-30px, 80px, 0) scale(0.95); }
+}
+
+@keyframes pxFloatBlob2 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-50px, -60px, 0) scale(1.1); }
+  100% { transform: translate3d(-90px, 40px, 0) scale(0.92); }
+}
+
+@keyframes pxFloatBlob3 {
+  0% { transform: translate3d(0, 0, 0) scale(0.95); }
+  50% { transform: translate3d(-60px, -40px, 0) scale(1.06); }
+  100% { transform: translate3d(50px, -20px, 0) scale(1); }
+}
+
+@keyframes pxSpinSlow {
+  from { transform: translateX(-50%) rotate(0deg); }
+  to { transform: translateX(-50%) rotate(360deg); }
+}
+
+@keyframes pxSpinReverse {
+  from { transform: translateX(-50%) rotate(360deg); }
+  to { transform: translateX(-50%) rotate(0deg); }
+}
+
+/* --------------------------------------------------------------------------
+   Header / Navigation Bar
+   -------------------------------------------------------------------------- */
+.px-landing-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 48px;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.02);
+}
+
+.px-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+}
+
+.px-brand-logo-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+}
+
+.px-brand-meta h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.px-brand-meta span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  letter-spacing: 0.2px;
+}
+
+.px-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.px-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.px-nav-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.px-nav-link-btn.secondary {
+  color: #334155;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.px-nav-link-btn.secondary:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+.px-nav-link-btn.primary {
+  color: #ffffff;
+  background: #2563eb;
+  border: 1px solid #1d4ed8;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+.px-nav-link-btn.primary:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Hero Section
+   -------------------------------------------------------------------------- */
+.px-landing-content {
+  position: relative;
+  z-index: 5;
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.px-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 22px;
+  animation: pxFadeInDown 0.6s ease-out;
+}
+
+.px-hero-pill .pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  display: inline-block;
+}
+
+.px-hero-title {
+  font-size: 46px;
+  font-weight: 850;
+  line-height: 1.18;
+  letter-spacing: -1.2px;
+  color: #0f172a;
+  max-width: 880px;
+  margin: 0 0 18px;
+  animation: pxFadeInUp 0.7s ease-out;
+}
+
+.px-hero-title .gradient-text {
+  background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #4338ca 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.px-hero-subtitle {
+  font-size: 17.5px;
+  line-height: 1.6;
+  color: #475569;
+  max-width: 720px;
+  margin: 0 0 32px;
+  animation: pxFadeInUp 0.8s ease-out;
+}
+
+.px-trust-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 48px;
+  animation: pxFadeInUp 0.9s ease-out;
+}
+
+.px-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 550;
+  color: #334155;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+/* --------------------------------------------------------------------------
+   Interactive Portal Cards Grid
+   -------------------------------------------------------------------------- */
+.px-portals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  width: 100%;
+  max-width: 1000px;
+  margin-bottom: 56px;
+  animation: pxFadeInUp 1s ease-out;
+}
+
+.px-portal-card {
+  position: relative;
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 36px 32px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.04), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.px-portal-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: transparent;
+  transition: background 0.3s ease;
+}
+
+.px-portal-card.staff-card:hover {
+  transform: translateY(-5px);
+  border-color: #93c5fd;
+  box-shadow: 0 20px 35px -8px rgba(37, 99, 235, 0.14), 0 6px 12px -3px rgba(37, 99, 235, 0.08);
+}
+.px-portal-card.staff-card:hover::before {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+}
+
+.px-portal-card.student-card:hover {
+  transform: translateY(-5px);
+  border-color: #6ee7b7;
+  box-shadow: 0 20px 35px -8px rgba(16, 185, 129, 0.14), 0 6px 12px -3px rgba(16, 185, 129, 0.08);
+}
+.px-portal-card.student-card:hover::before {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.px-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.px-card-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.px-card-icon-box.blue {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.px-card-icon-box.green {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  color: #059669;
+  border: 1px solid #a7f3d0;
+}
+
+.px-card-badge {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.px-card-badge.blue {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.px-card-badge.green {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.px-card-title {
+  font-size: 23px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 10px;
+  letter-spacing: -0.3px;
+}
+
+.px-card-desc {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #64748b;
+  margin: 0 0 22px;
+}
+
+.px-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.px-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.px-feature-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.px-feature-check.blue {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.px-feature-check.green {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.px-card-cta-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 15px 22px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.22s ease;
+}
+
+.px-card-cta-btn.blue {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28);
+}
+.px-card-cta-btn.blue:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.38);
+}
+
+.px-card-cta-btn.green {
+  background: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+}
+.px-card-cta-btn.green:hover {
+  background: #059669;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.38);
+}
+
+.px-card-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   Supported Institutions Row
+   -------------------------------------------------------------------------- */
+.px-colleges-row {
+  width: 100%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.px-college-type-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 16px;
+  text-align: left;
+}
+
+.px-college-type-card h4 {
+  font-size: 14px;
+  font-weight: 750;
+  color: #1e293b;
+  margin: 0 0 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.px-college-type-card p {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #64748b;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Floating Super Admin Access (Bottom Right)
+   -------------------------------------------------------------------------- */
+.px-floating-superadmin {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 50;
+  animation: pxFadeIn 1.2s ease-out;
+}
+
+.px-superadmin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 30px;
+  background: #0f172a;
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25), 0 2px 6px rgba(15, 23, 42, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.px-superadmin-btn:hover {
+  background: #1e293b;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.35);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+
+.px-superadmin-btn .admin-icon {
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+}
+
+.px-superadmin-btn:hover .admin-icon {
+  color: #38bdf8;
+  transform: rotate(30deg);
+}
+
+/* --------------------------------------------------------------------------
+   Footer
+   -------------------------------------------------------------------------- */
+.px-landing-footer {
+  position: relative;
+  z-index: 10;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.px-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.px-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #059669;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.px-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.px-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.px-footer-right a {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 12.5px;
+}
+
+.px-footer-right a:hover {
+  color: #2563eb;
+}
+
+/* --------------------------------------------------------------------------
+   Fade animations
+   -------------------------------------------------------------------------- */
+@keyframes pxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pxFadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pxFadeInDown {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -15px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Breakpoints
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  .px-portals-grid {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+
+  .px-colleges-row {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+
+  .px-hero-title {
+    font-size: 34px;
+  }
+
+  .px-hero-subtitle {
+    font-size: 15.5px;
+  }
+
+  .px-landing-header {
+    padding: 16px 20px;
+  }
+
+  .px-landing-footer {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .px-header-actions .px-nav-badge {
+    display: none;
+  }
+
+  .px-hero-title {
+    font-size: 28px;
+  }
+
+  .px-floating-superadmin {
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .px-portal-card {
+    padding: 26px 20px;
+  }
+}
+
+/* Respect user's reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .px-blob-1,
+  .px-blob-2,
+  .px-blob-3,
+  .px-orbit-ring-1,
+  .px-orbit-ring-2,
+  .px-hero-pill,
+  .px-hero-title,
+  .px-hero-subtitle,
+  .px-trust-chips,
+  .px-portals-grid,
+  .px-floating-superadmin {
+    animation: none !important;
+    transition: none !important;
+  }
+}

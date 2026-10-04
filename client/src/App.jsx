@@ -6,6 +6,9 @@ import {
 import { CollegeProvider } from "./context/CollegeContext";
 import { ToastProvider } from "./context/ToastContext";
 
+// Public
+import LandingPage from "./pages/public/LandingPage";
+
 // Auth
 import StaffAccessLogin from "./pages/auth/StaffAccessLogin";
 import StudentAccessLogin from "./pages/student/StudentAccessLogin";
@@ -74,16 +77,22 @@ function App() {
       <ToastProvider>
         <BrowserRouter>
           <Routes>
+          {/* Public Landing & Portal Selector */}
+          <Route path="/" element={<LandingPage />} />
+
           {/* Dedicated Staff Gateways */}
           <Route path="/staff/:collegeIdentifier" element={<StaffAccessLogin />} />
           <Route path="/staff" element={<StaffAccessLogin />} />
           <Route path="/login" element={<StaffAccessLogin />} />
 
           {/* Dedicated Student Gateways */}
+          <Route path="/student" element={<StudentAccessLogin />} />
+          <Route path="/student/:collegeIdentifier" element={<StudentAccessLogin />} />
           <Route path="/student-access/:collegeIdentifier" element={<StudentAccessLogin />} />
           <Route path="/student-access" element={<StudentAccessLogin />} />
 
           {/* Super Admin Routes */}
+          <Route path="/super-admin/login" element={<StaffAccessLogin />} />
           <Route path="/super-admin" element={<SuperAdminDashboard />} />
           <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
           <Route path="/super-admin/colleges" element={<Colleges />} />
@@ -102,7 +111,6 @@ function App() {
           <Route path="/hod/profile" element={<Profile />} />
 
           {/* Faculty Routes */}
-          <Route path="/" element={<FacultyDashboard />} />
           <Route path="/faculty" element={<FacultyDashboard />} />
           <Route path="/faculty/dashboard" element={<FacultyDashboard />} />
           <Route path="/faculty/schedule" element={<FacultySchedule />} />
@@ -126,15 +134,13 @@ function App() {
           <Route path="/admin/reports" element={<AdminReports />} />
           <Route path="/admin/profile" element={<Profile />} />
 
-          {/* Student Authenticated Portal & Dedicated Gateway */}
+          {/* Student Authenticated Portal */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/student/attendance" element={<StudentAttendance />} />
           <Route path="/student/schedule" element={<StudentSchedule />} />
           <Route path="/student/internal-marks" element={<StudentInternalMarks />} />
           <Route path="/student/assignments" element={<StudentAssignments />} />
           <Route path="/student/profile" element={<Profile />} />
-          <Route path="/student/:collegeIdentifier" element={<StudentAccessLogin />} />
-          <Route path="/student" element={<StudentDashboard />} />
 
           {/* Principal Routes */}
           <Route path="/principal" element={<PrincipalDashboard />} />
