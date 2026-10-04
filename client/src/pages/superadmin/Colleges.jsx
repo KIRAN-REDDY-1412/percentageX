@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
@@ -20,8 +20,14 @@ import { useToast } from "../../context/ToastContext";
 
 function Colleges() {
   const navigate = useNavigate();
-  const { colleges, updateCollegeStatus, updateCollegeDetails } = useCollege();
+  const { colleges, fetchColleges, updateCollegeStatus, updateCollegeDetails } = useCollege();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (fetchColleges) {
+      fetchColleges();
+    }
+  }, []);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [copiedKey, setCopiedKey] = useState("");

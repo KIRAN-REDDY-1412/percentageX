@@ -126,14 +126,68 @@ export function CollegeProvider({ children }) {
     localStorage.setItem("percentagex_colleges", JSON.stringify(colleges));
   }, [colleges]);
 
-  // Load Colleges from API
+  // Load Colleges from API & non-destructively reconcile with local storage
   const fetchColleges = async () => {
     try {
       const res = await fetch("/api/colleges");
       const contentType = res.headers.get("content-type") || "";
       if (res.ok && contentType.includes("application/json")) {
-        const data = await res.json();
-        if (Array.isArray(data)) setColleges(data);
+        const dbData = await res.json();
+        if (Array.isArray(dbData)) {
+          setColleges((prevColleges) => {
+            // Read locally stored colleges from localStorage as fallback reference
+            let savedLocal = [];
+            try {
+              const raw = localStorage.getItem("percentagex_colleges");
+              if (raw) savedLocal = JSON.parse(raw);
+            } catch {
+              savedLocal = [];
+            }
+
+            const knownColleges = prevColleges && prevColleges.length > 0 ? prevColleges : savedLocal;
+            const dbIds = new Set(dbData.map((c) => c.id));
+            const dbCodes = new Set(dbData.map((c) => (c.code || "").toUpperCase()));
+
+            // Retain any local colleges that are not yet in the DB response
+            const unsyncedLocal = (knownColleges || []).filter(
+              (c) => c && c.id && !dbIds.has(c.id) && !dbCodes.has((c.code || "").toUpperCase())
+            );
+
+            // Background-sync any unsynced local colleges to the server
+            if (unsyncedLocal.length > 0) {
+              unsyncedLocal.forEach(async (unsynced) => {
+                try {
+                  await fetch("/api/colleges", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(unsynced),
+                  });
+                } catch (syncErr) {
+                  console.warn("Auto-syncing college to server:", unsynced.name, syncErr);
+                }
+              });
+            }
+
+            // Merge DB data with local info (e.g. keeping newly updated local logo if DB is empty)
+            const mergedDb = dbData.map((dbCol) => {
+              const match = (knownColleges || []).find(
+                (k) => k.id === dbCol.id || (k.code && k.code.toUpperCase() === (dbCol.code || "").toUpperCase())
+              );
+              if (match) {
+                return {
+                  ...match,
+                  ...dbCol,
+                  logo: dbCol.logo || match.logo || null,
+                };
+              }
+              return dbCol;
+            });
+
+            const merged = [...mergedDb, ...unsyncedLocal];
+            localStorage.setItem("percentagex_colleges", JSON.stringify(merged));
+            return merged;
+          });
+        }
       }
     } catch (err) {
       console.warn("API fetchColleges error:", err);
@@ -203,8 +257,28 @@ export function CollegeProvider({ children }) {
     bootstrapCollegeData();
   }, [currentUser?.collegeId]);
 
-  // College Creation
+  // College Creation with instant local write & server persistence
   const createCollege = async (collegeData) => {
+    const tempId = `col-${collegeData.code.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString().slice(-4)}`;
+    const localCol = {
+      id: tempId,
+      status: "active",
+      created_at: new Date().toISOString(),
+      ...collegeData,
+      code: collegeData.code.toUpperCase(),
+    };
+
+    // 1. Immediately persist locally to ensure zero data loss on refresh
+    setColleges((prev) => {
+      const filtered = (prev || []).filter(
+        (c) => c.id !== tempId && (c.code || "").toUpperCase() !== localCol.code
+      );
+      const updated = [localCol, ...filtered];
+      localStorage.setItem("percentagex_colleges", JSON.stringify(updated));
+      return updated;
+    });
+
+    // 2. Persist to backend Supabase database
     try {
       const res = await fetch("/api/colleges", {
         method: "POST",
@@ -213,19 +287,27 @@ export function CollegeProvider({ children }) {
       });
       const contentType = res.headers.get("content-type") || "";
       if (res.ok && contentType.includes("application/json")) {
-        const newCol = await res.json();
-        setColleges((prev) => [newCol, ...prev]);
-        return newCol;
+        const savedCol = await res.json();
+        if (savedCol && savedCol.id) {
+          setColleges((prev) => {
+            const updated = (prev || []).map((c) =>
+              c.id === tempId || (c.code || "").toUpperCase() === (savedCol.code || "").toUpperCase()
+                ? { ...c, ...savedCol }
+                : c
+            );
+            localStorage.setItem("percentagex_colleges", JSON.stringify(updated));
+            return updated;
+          });
+          return savedCol;
+        }
+      } else {
+        const err = await res.json().catch(() => ({}));
+        console.warn("Backend college creation returned non-OK:", res.status, err);
       }
     } catch (e) {
-      console.warn("API createCollege fallback:", e);
+      console.warn("API createCollege network fallback:", e);
     }
-    const localCol = {
-      id: `col-${collegeData.code.toLowerCase()}-${Date.now().toString().slice(-4)}`,
-      status: "active",
-      ...collegeData,
-    };
-    setColleges((prev) => [localCol, ...prev]);
+
     return localCol;
   };
 
