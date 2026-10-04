@@ -270,6 +270,41 @@ export function CollegeProvider({ children }) {
     }
   };
 
+  const updateCollegeLogo = async (collegeId, logo) => {
+    try {
+      const res = await fetch(`/api/colleges/${collegeId}/logo`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logo }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const savedLogo = data.logo;
+        setColleges((prev) =>
+          prev.map((c) => (c.id === collegeId ? { ...c, logo: savedLogo } : c))
+        );
+        if (currentUser && currentUser.collegeId === collegeId) {
+          const updatedUser = { ...currentUser, collegeLogo: savedLogo };
+          setCurrentUser(updatedUser);
+          localStorage.setItem("percentagex_user", JSON.stringify(updatedUser));
+        }
+        return { success: true, logo: savedLogo };
+      }
+    } catch (e) {
+      console.warn("API updateCollegeLogo fallback:", e);
+    }
+    // Local fallback
+    setColleges((prev) =>
+      prev.map((c) => (c.id === collegeId ? { ...c, logo } : c))
+    );
+    if (currentUser && currentUser.collegeId === collegeId) {
+      const updatedUser = { ...currentUser, collegeLogo: logo };
+      setCurrentUser(updatedUser);
+      localStorage.setItem("percentagex_user", JSON.stringify(updatedUser));
+    }
+    return { success: true, logo };
+  };
+
   const setVerifiedStudent = (verificationData) => {
     setVerifiedStudentData(verificationData);
     if (verificationData?.student) {
@@ -852,6 +887,7 @@ export function CollegeProvider({ children }) {
         createCollege,
         updateCollegeStatus,
         updateCollegeDetails,
+        updateCollegeLogo,
         verifiedStudentData,
         setVerifiedStudent,
         logout,

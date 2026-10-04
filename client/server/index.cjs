@@ -30,7 +30,7 @@ app.get('/api/colleges/public/:identifier', async (req, res) => {
   const { identifier } = req.params;
   try {
     const colRes = await pool.query(
-      `SELECT id, name, code, college_type, status, address, phone, email 
+      `SELECT id, name, code, college_type, status, address, phone, email, logo 
        FROM colleges 
        WHERE LOWER(id) = LOWER($1) OR LOWER(code) = LOWER($1)`,
       [identifier.trim()]
@@ -138,6 +138,7 @@ app.post('/api/auth/login', async (req, res) => {
         collegeName: college ? college.name : null,
         collegeCode: college ? college.code : null,
         collegeType: college ? (college.college_type || college.type) : null,
+        collegeLogo: college ? college.logo : null,
         departmentId: user.department_id || null,
         department: user.department || null,
         designation: user.designation || null,
@@ -391,6 +392,7 @@ app.post('/api/student-access/verify', async (req, res) => {
       timetable: timetableRes.rows,
       marks: marksRes.rows,
       assignments: assignRes.rows,
+      college: targetCollege || null,
     });
   } catch (err) {
     console.error('Student access error:', err);
@@ -417,7 +419,7 @@ app.get('/api/colleges', async (req, res) => {
 });
 
 app.post('/api/colleges', async (req, res) => {
-  const { name, code, college_type, address, phone, email, adminName, adminEmail, adminPassword } = req.body;
+  const { name, code, college_type, address, phone, email, logo, adminName, adminEmail, adminPassword } = req.body;
   if (!name || !code || !college_type) {
     return res.status(400).json({ error: 'Name, code, and college type (BTECH, DEGREE, JUNIOR_COLLEGE) are required.' });
   }
@@ -425,10 +427,10 @@ app.post('/api/colleges', async (req, res) => {
   const id = `col-${code.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now().toString().slice(-4)}`;
   try {
     const result = await pool.query(
-      `INSERT INTO colleges (id, name, code, college_type, address, phone, email, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
+      `INSERT INTO colleges (id, name, code, college_type, address, phone, email, status, logo)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', $8)
        RETURNING *`,
-      [id, name, code, college_type, address, phone, email]
+      [id, name, code, college_type, address, phone, email, logo || null]
     );
 
     const createdCollege = result.rows[0];
@@ -465,7 +467,7 @@ app.post('/api/colleges', async (req, res) => {
 
 app.put('/api/colleges/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, code, college_type, address, phone, email, status } = req.body;
+  const { name, code, college_type, address, phone, email, status, logo } = req.body;
 
   try {
     const result = await pool.query(
@@ -476,14 +478,33 @@ app.put('/api/colleges/:id', async (req, res) => {
            address = COALESCE($4, address),
            phone = COALESCE($5, phone),
            email = COALESCE($6, email),
-           status = COALESCE($7, status)
-       WHERE id = $8
+           status = COALESCE($7, status),
+           logo = CASE WHEN $8::boolean THEN $9 ELSE logo END
+       WHERE id = $10
        RETURNING *`,
-      [name, code, college_type, address, phone, email, status, id]
+      [name, code, college_type, address, phone, email, status, logo !== undefined, logo || null, id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'College not found' });
     res.json(result.rows[0]);
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/colleges/:id/logo', async (req, res) => {
+  const { id } = req.params;
+  const { logo } = req.body;
+
+  try {
+    const result = await pool.query(
+      `UPDATE colleges SET logo = $1 WHERE id = $2 RETURNING *`,
+      [logo || null, id]
+    );
+    if (result.rows.length === 0) return res.status(404).json({ error: 'College not found' });
+    console.log(`✓ Updated logo for college ${id} (${result.rows[0].name})`);
+    res.json({ success: true, college: result.rows[0], logo: result.rows[0].logo });
+  } catch (err) {
+    console.error('Error updating college logo:', err);
     res.status(500).json({ error: err.message });
   }
 });

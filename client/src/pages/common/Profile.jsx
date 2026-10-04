@@ -16,6 +16,7 @@ import {
 import AppLayout from "../../layouts/AppLayout";
 import { useCollege } from "../../context/CollegeContext";
 import { useToast } from "../../context/ToastContext";
+import CollegeLogoManager from "../../components/common/CollegeLogoManager";
 
 function Profile() {
   const { currentUser, updateUserProfile } = useCollege();
@@ -439,6 +440,14 @@ function Profile() {
             )}
           </form>
         </div>
+
+        {/* COLLEGE LOGO & BRANDING (COLLEGE ADMIN ONLY) */}
+        {isCollegeAdmin && (
+          <CollegeLogoManager
+            collegeId={currentUser?.collegeId}
+            title={`${currentUser?.collegeName || "Institution"} Logo & Branding`}
+          />
+        )}
       </div>
     </AppLayout>
   );

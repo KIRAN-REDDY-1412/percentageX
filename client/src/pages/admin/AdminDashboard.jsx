@@ -12,6 +12,7 @@ import {
 import AppLayout from "../../layouts/AppLayout";
 import { useCollege } from "../../context/CollegeContext";
 import StatCounter from "../../components/common/StatCounter";
+import CollegeLogoManager from "../../components/common/CollegeLogoManager";
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -289,6 +290,9 @@ function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        {/* INSTITUTIONAL BRANDING & LOGO CONTROL */}
+        <CollegeLogoManager />
       </div>
     </AppLayout>
   );

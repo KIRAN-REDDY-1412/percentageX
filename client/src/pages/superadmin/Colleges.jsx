@@ -76,6 +76,7 @@ function Colleges() {
       address: col.address || "",
       phone: col.phone || "",
       email: col.email || "",
+      logo: col.logo || "",
       status: col.status || "active",
     });
     setFormError("");
@@ -99,6 +100,7 @@ function Colleges() {
         address: editFormData.address.trim(),
         phone: editFormData.phone.trim(),
         email: editFormData.email.trim(),
+        logo: editFormData.logo || null,
         status: editFormData.status,
       });
 
@@ -199,16 +201,37 @@ function Colleges() {
                     }}
                   >
                     <div style={{ display: "flex", gap: "12px", alignItems: "flex-start", flex: 1, minWidth: 0 }}>
-                      <div
-                        className="course-icon-box"
-                        style={{
-                          background: isInactive ? "#f1f5f9" : "#eff6ff",
-                          color: isInactive ? "#94a3b8" : "#2563eb",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Building size={22} />
-                      </div>
+                      {col.logo ? (
+                        <div
+                          style={{
+                            width: "48px",
+                            height: "48px",
+                            borderRadius: "12px",
+                            background: "#ffffff",
+                            border: "1px solid #e2e8f0",
+                            padding: "4px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            overflow: "hidden",
+                            flexShrink: 0,
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+                          }}
+                        >
+                          <img src={col.logo} alt="Logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                        </div>
+                      ) : (
+                        <div
+                          className="course-icon-box"
+                          style={{
+                            background: isInactive ? "#f1f5f9" : "#eff6ff",
+                            color: isInactive ? "#94a3b8" : "#2563eb",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Building size={22} />
+                        </div>
+                      )}
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div className="course-badge">{col.code}</div>
                         <h2 style={{ wordBreak: "break-word" }}>{col.name}</h2>
@@ -466,6 +489,92 @@ function Colleges() {
                       placeholder="+91 98888 12345"
                     />
                   </div>
+                </div>
+
+                {/* INSTITUTIONAL LOGO */}
+                <div className="form-group">
+                  <label>Institutional Logo (Image URL or File)</label>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <input
+                      type="text"
+                      placeholder="https://example.com/logo.png or browse file"
+                      value={editFormData.logo || ""}
+                      onChange={(e) => setEditFormData({ ...editFormData, logo: e.target.value })}
+                      style={{ flex: 1 }}
+                    />
+                    <label
+                      style={{
+                        padding: "9px 14px",
+                        background: "#f1f5f9",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "8px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        color: "#334155",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Browse
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setEditFormData((prev) => ({ ...prev, logo: ev.target.result }));
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                    {editFormData.logo && (
+                      <button
+                        type="button"
+                        onClick={() => setEditFormData((prev) => ({ ...prev, logo: "" }))}
+                        style={{
+                          padding: "9px 12px",
+                          background: "#fee2e2",
+                          border: "1px solid #fecaca",
+                          borderRadius: "8px",
+                          color: "#dc2626",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  {editFormData.logo && (
+                    <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          borderRadius: "8px",
+                          border: "1px solid #e2e8f0",
+                          padding: "3px",
+                          background: "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <img src={editFormData.logo} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      </div>
+                      <span style={{ fontSize: "12px", color: "#16a34a", fontWeight: 600 }}>Logo preview</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-group">

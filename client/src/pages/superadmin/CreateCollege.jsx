@@ -35,6 +35,7 @@ function CreateCollege() {
     address: "",
     phone: "",
     email: "",
+    logo: "",
     adminName: "",
     adminEmail: "",
     adminPassword: "password123",
@@ -237,6 +238,92 @@ function CreateCollege() {
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   />
                 </div>
+              </div>
+
+              {/* INSTITUTIONAL LOGO */}
+              <div className="form-group" style={{ marginBottom: "16px" }}>
+                <label>Institutional Logo (Optional URL or File)</label>
+                <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <input
+                    type="text"
+                    placeholder="https://example.com/logo.png or upload image"
+                    value={formData.logo || ""}
+                    onChange={(e) => setFormData({ ...formData, logo: e.target.value })}
+                    style={{ flex: 1 }}
+                  />
+                  <label
+                    style={{
+                      padding: "9px 14px",
+                      background: "#f1f5f9",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      fontSize: "12.5px",
+                      fontWeight: 600,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      color: "#334155",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Browse File
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            setFormData((prev) => ({ ...prev, logo: ev.target.result }));
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                  {formData.logo && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, logo: "" }))}
+                      style={{
+                        padding: "9px 12px",
+                        background: "#fee2e2",
+                        border: "1px solid #fecaca",
+                        borderRadius: "8px",
+                        color: "#dc2626",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                {formData.logo && (
+                  <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        borderRadius: "8px",
+                        border: "1px solid #e2e8f0",
+                        padding: "3px",
+                        background: "#ffffff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <img src={formData.logo} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    </div>
+                    <span style={{ fontSize: "12px", color: "#16a34a", fontWeight: 600 }}>Logo attached</span>
+                  </div>
+                )}
               </div>
 
               {/* PRIMARY ADMIN PROVISIONING SECTION */}

@@ -196,9 +196,40 @@ function StudentAccessLogin() {
       <div className="login-card" style={{ maxWidth: "500px" }}>
         {/* INSTITUTIONAL BRANDING HEADER */}
         <div className="login-header">
-          <div className="login-logo" style={{ background: "#10b981", color: "#ffffff" }}>
-            <GraduationCap size={32} />
-          </div>
+          {college?.logo ? (
+            <div
+              className="login-logo-custom"
+              style={{
+                width: "74px",
+                height: "74px",
+                margin: "0 auto 16px",
+                borderRadius: "16px",
+                background: "#ffffff",
+                boxShadow: "0 4px 14px rgba(0, 0, 0, 0.08)",
+                border: "1px solid #e2e8f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "8px",
+                overflow: "hidden",
+              }}
+            >
+              <img
+                src={college.logo}
+                alt={`${college.name} Logo`}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
+            </div>
+          ) : (
+            <div className="login-logo" style={{ background: "#10b981", color: "#ffffff" }}>
+              <GraduationCap size={32} />
+            </div>
+          )}
 
           {loadingCollege ? (
             <p className="text-muted" style={{ padding: "12px 0" }}>Connecting to institutional server...</p>
