@@ -509,6 +509,25 @@ app.put('/api/colleges/:id/logo', async (req, res) => {
   }
 });
 
+app.delete('/api/colleges/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('DELETE FROM colleges WHERE id = $1 RETURNING *', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'College not found in database.' });
+    }
+    console.log(`✓ Deleted college ${id} (${result.rows[0].name})`);
+    res.json({
+      success: true,
+      message: `Institution "${result.rows[0].name}" and all associated data permanently deleted.`,
+      deletedCollege: result.rows[0],
+    });
+  } catch (err) {
+    console.error('Error deleting college:', err);
+    res.status(500).json({ error: 'Failed to delete college: ' + err.message });
+  }
+});
+
 // ----------------------------------------------------
 // 4. ACADEMIC BOOTSTRAP (SINGLE SOURCE OF TRUTH)
 // ----------------------------------------------------

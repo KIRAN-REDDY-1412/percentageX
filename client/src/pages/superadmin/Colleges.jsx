@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   GraduationCap,
   Pencil,
+  Trash2,
   X,
   Save,
   AlertCircle,
@@ -20,7 +21,7 @@ import { useToast } from "../../context/ToastContext";
 
 function Colleges() {
   const navigate = useNavigate();
-  const { colleges, fetchColleges, updateCollegeStatus, updateCollegeDetails } = useCollege();
+  const { colleges, fetchColleges, deleteCollege, updateCollegeStatus, updateCollegeDetails } = useCollege();
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -45,6 +46,10 @@ function Colleges() {
   });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+
+  // Delete College Modal State
+  const [collegeToDelete, setCollegeToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const filtered = colleges.filter((c) => {
     const matchesSearch =
@@ -121,6 +126,24 @@ function Colleges() {
       setFormError("Failed to update college: " + err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!collegeToDelete) return;
+    try {
+      setDeleting(true);
+      const res = await deleteCollege(collegeToDelete.id);
+      if (res && res.error) {
+        showToast("Failed to delete college: " + res.error, "error");
+        return;
+      }
+      showToast(`Institution "${collegeToDelete.name}" and all associated data deleted.`, "success");
+      setCollegeToDelete(null);
+    } catch (err) {
+      showToast("Error deleting college: " + err.message, "error");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -245,23 +268,43 @@ function Colleges() {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      className="outline-button"
-                      onClick={() => handleOpenEdit(col)}
-                      title="Edit College Details"
-                      style={{
-                        padding: "6px 12px",
-                        fontSize: "12px",
-                        gap: "6px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Pencil size={13} />
-                      <span>Edit</span>
-                    </button>
+                    <div style={{ display: "flex", gap: "6px", alignItems: "center", flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        className="outline-button"
+                        onClick={() => handleOpenEdit(col)}
+                        title="Edit College Details"
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          gap: "6px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Pencil size={13} />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="outline-button"
+                        onClick={() => setCollegeToDelete(col)}
+                        title="Delete College"
+                        style={{
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          gap: "6px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          color: "#dc2626",
+                          borderColor: "#fecaca",
+                          backgroundColor: "#fff5f5",
+                        }}
+                      >
+                        <Trash2 size={13} />
+                        <span>Delete</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="course-details-box">
@@ -609,6 +652,116 @@ function Colleges() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* DELETE CONFIRMATION MODAL */}
+        {collegeToDelete && (
+          <div
+            className="modal-overlay"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "rgba(15, 23, 42, 0.6)",
+              backdropFilter: "blur(4px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 9999,
+              padding: "20px",
+            }}
+          >
+            <div
+              className="modal-content"
+              style={{
+                background: "#ffffff",
+                borderRadius: "16px",
+                maxWidth: "480px",
+                width: "100%",
+                padding: "24px",
+                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                <div
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "10px",
+                    backgroundColor: "#fee2e2",
+                    color: "#dc2626",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Trash2 size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700, color: "#0f172a" }}>
+                    Delete Institution
+                  </h3>
+                  <p style={{ margin: "2px 0 0", fontSize: "13px", color: "#64748b" }}>
+                    Permanent platform action
+                  </p>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  background: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  borderRadius: "10px",
+                  padding: "14px 16px",
+                  marginBottom: "20px",
+                }}
+              >
+                <p style={{ margin: 0, fontSize: "13.5px", color: "#991b1b", lineHeight: "1.5" }}>
+                  Are you sure you want to permanently delete <strong>{collegeToDelete.name}</strong> ({collegeToDelete.code})?
+                </p>
+                <p style={{ margin: "8px 0 0", fontSize: "12px", color: "#b91c1c", lineHeight: "1.4" }}>
+                  This will delete the institution from Supabase along with all its associated courses, faculty accounts, students, timetable assignments, and attendance logs. This action cannot be undone.
+                </p>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <button
+                  type="button"
+                  className="outline-button"
+                  onClick={() => setCollegeToDelete(null)}
+                  disabled={deleting}
+                  style={{ padding: "8px 16px" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  disabled={deleting}
+                  style={{
+                    padding: "8px 18px",
+                    borderRadius: "8px",
+                    border: "none",
+                    background: "#dc2626",
+                    color: "#ffffff",
+                    fontWeight: 600,
+                    fontSize: "13px",
+                    cursor: deleting ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    boxShadow: "0 2px 4px rgba(220, 38, 38, 0.2)",
+                  }}
+                >
+                  <Trash2 size={15} />
+                  <span>{deleting ? "Deleting from Supabase..." : "Yes, Delete Institution"}</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

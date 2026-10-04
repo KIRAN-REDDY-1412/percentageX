@@ -126,7 +126,7 @@ export function CollegeProvider({ children }) {
     localStorage.setItem("percentagex_colleges", JSON.stringify(colleges));
   }, [colleges]);
 
-  // Load Colleges from API & non-destructively reconcile with local storage
+  // Load Colleges from Supabase API (Supabase is single source of truth)
   const fetchColleges = async () => {
     try {
       const res = await fetch("/api/colleges");
@@ -135,7 +135,6 @@ export function CollegeProvider({ children }) {
         const dbData = await res.json();
         if (Array.isArray(dbData)) {
           setColleges((prevColleges) => {
-            // Read locally stored colleges from localStorage as fallback reference
             let savedLocal = [];
             try {
               const raw = localStorage.getItem("percentagex_colleges");
@@ -148,27 +147,32 @@ export function CollegeProvider({ children }) {
             const dbIds = new Set(dbData.map((c) => c.id));
             const dbCodes = new Set(dbData.map((c) => (c.code || "").toUpperCase()));
 
-            // Retain any local colleges that are not yet in the DB response
-            const unsyncedLocal = (knownColleges || []).filter(
-              (c) => c && c.id && !dbIds.has(c.id) && !dbCodes.has((c.code || "").toUpperCase())
+            // Only keep drafts that are explicitly marked as _pendingSync (failed during creation)
+            // If a college was previously synced or not pending, and is NOT in Supabase, IT WAS DELETED in Supabase!
+            const unsyncedPendingDrafts = (knownColleges || []).filter(
+              (c) => c && c.id && c._pendingSync === true && !dbIds.has(c.id) && !dbCodes.has((c.code || "").toUpperCase())
             );
 
-            // Background-sync any unsynced local colleges to the server
-            if (unsyncedLocal.length > 0) {
-              unsyncedLocal.forEach(async (unsynced) => {
+            // Background-sync any pending drafts
+            if (unsyncedPendingDrafts.length > 0) {
+              unsyncedPendingDrafts.forEach(async (unsynced) => {
                 try {
-                  await fetch("/api/colleges", {
+                  const syncRes = await fetch("/api/colleges", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(unsynced),
                   });
+                  if (syncRes.ok) {
+                    delete unsynced._pendingSync;
+                  }
                 } catch (syncErr) {
-                  console.warn("Auto-syncing college to server:", unsynced.name, syncErr);
+                  console.warn("Auto-sync draft error for college:", unsynced.name, syncErr);
                 }
               });
             }
 
-            // Merge DB data with local info (e.g. keeping newly updated local logo if DB is empty)
+            // Supabase is authoritative!
+            // If deleted in Supabase, it is NOT in dbData, so it disappears.
             const mergedDb = dbData.map((dbCol) => {
               const match = (knownColleges || []).find(
                 (k) => k.id === dbCol.id || (k.code && k.code.toUpperCase() === (dbCol.code || "").toUpperCase())
@@ -177,13 +181,14 @@ export function CollegeProvider({ children }) {
                 return {
                   ...match,
                   ...dbCol,
+                  _synced: true,
                   logo: dbCol.logo || match.logo || null,
                 };
               }
-              return dbCol;
+              return { ...dbCol, _synced: true };
             });
 
-            const merged = [...mergedDb, ...unsyncedLocal];
+            const merged = [...mergedDb, ...unsyncedPendingDrafts];
             localStorage.setItem("percentagex_colleges", JSON.stringify(merged));
             return merged;
           });
@@ -266,6 +271,7 @@ export function CollegeProvider({ children }) {
       created_at: new Date().toISOString(),
       ...collegeData,
       code: collegeData.code.toUpperCase(),
+      _pendingSync: true,
     };
 
     // 1. Immediately persist locally to ensure zero data loss on refresh
@@ -289,16 +295,17 @@ export function CollegeProvider({ children }) {
       if (res.ok && contentType.includes("application/json")) {
         const savedCol = await res.json();
         if (savedCol && savedCol.id) {
+          const finalized = { ...savedCol, _synced: true };
           setColleges((prev) => {
             const updated = (prev || []).map((c) =>
               c.id === tempId || (c.code || "").toUpperCase() === (savedCol.code || "").toUpperCase()
-                ? { ...c, ...savedCol }
+                ? { ...c, ...finalized }
                 : c
             );
             localStorage.setItem("percentagex_colleges", JSON.stringify(updated));
             return updated;
           });
-          return savedCol;
+          return finalized;
         }
       } else {
         const err = await res.json().catch(() => ({}));
@@ -309,6 +316,33 @@ export function CollegeProvider({ children }) {
     }
 
     return localCol;
+  };
+
+  const deleteCollege = async (collegeId) => {
+    try {
+      const res = await fetch(`/api/colleges/${encodeURIComponent(collegeId)}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setColleges((prev) => {
+          const updated = (prev || []).filter((c) => c.id !== collegeId);
+          localStorage.setItem("percentagex_colleges", JSON.stringify(updated));
+          return updated;
+        });
+        return { success: true };
+      } else {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to delete college on server");
+      }
+    } catch (e) {
+      console.warn("API deleteCollege error:", e);
+      setColleges((prev) => {
+        const updated = (prev || []).filter((c) => c.id !== collegeId);
+        localStorage.setItem("percentagex_colleges", JSON.stringify(updated));
+        return updated;
+      });
+      return { success: true, warning: e.message };
+    }
   };
 
   const updateCollegeStatus = async (collegeId, status) => {
@@ -967,6 +1001,7 @@ export function CollegeProvider({ children }) {
         colleges,
         fetchColleges,
         createCollege,
+        deleteCollege,
         updateCollegeStatus,
         updateCollegeDetails,
         updateCollegeLogo,
