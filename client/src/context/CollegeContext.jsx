@@ -26,10 +26,6 @@ export function CollegeProvider({ children }) {
         // fallback
       }
     }
-    const savedRole = localStorage.getItem("percentagex_role");
-    if (savedRole && INITIAL_USERS[savedRole]) {
-      return INITIAL_USERS[savedRole];
-    }
     return null;
   });
 
@@ -293,18 +289,98 @@ export function CollegeProvider({ children }) {
     }
   };
 
-  // Auth / Role switching methods
+  // Auth & Session Management
+  const setAuthenticatedUser = (user) => {
+    if (!user) {
+      logout();
+      return;
+    }
+    const cleanUser = {
+      ...user,
+      collegeId: user.collegeId || null,
+      roleLabel: user.roleLabel || (
+        user.role === "super_admin"
+          ? "Platform Super Administrator"
+          : user.role === "admin"
+          ? `${user.collegeName || "College"} Administrator`
+          : user.role.toUpperCase()
+      ),
+      avatar: user.avatar || (user.name ? user.name.slice(0, 2).toUpperCase() : (user.role === "super_admin" ? "SA" : "PX")),
+    };
+    setCurrentUser(cleanUser);
+    localStorage.setItem("percentagex_user", JSON.stringify(cleanUser));
+    localStorage.setItem("percentagex_role", cleanUser.role);
+  };
+
   const switchRole = (roleKey) => {
-    const user = INITIAL_USERS[roleKey] || INITIAL_USERS.super_admin;
+    if (roleKey === "super_admin") {
+      const sa = INITIAL_USERS.super_admin;
+      setCurrentUser(sa);
+      localStorage.setItem("percentagex_user", JSON.stringify(sa));
+      localStorage.setItem("percentagex_role", "super_admin");
+      return sa;
+    }
+    if (roleKey === "admin") {
+      const activeCol = colleges.find((c) => c.id === currentUser?.collegeId) || colleges[0];
+      const adm = {
+        id: `usr-admin-${activeCol?.code?.toLowerCase() || "01"}`,
+        name: activeCol ? `${activeCol.name} Administrator` : "College Administrator",
+        email: activeCol?.adminEmail || activeCol?.email || "admin@kvdc.edu",
+        role: "admin",
+        roleLabel: `${activeCol?.name || "College"} Administrator`,
+        collegeId: activeCol ? activeCol.id : "col-kvdc-8820",
+        collegeName: activeCol ? activeCol.name : "krishna veni degree college",
+        collegeCode: activeCol ? activeCol.code : "KVDC",
+        department: "Administration",
+        designation: "College Administrator",
+        phone: activeCol?.phone || "+91 98888 11111",
+        avatar: "CA",
+      };
+      setCurrentUser(adm);
+      localStorage.setItem("percentagex_user", JSON.stringify(adm));
+      localStorage.setItem("percentagex_role", "admin");
+      return adm;
+    }
+    const user = INITIAL_USERS[roleKey] || {
+      id: `usr-${roleKey}-${Date.now().toString().slice(-4)}`,
+      name: `${roleKey.toUpperCase()} Staff`,
+      role: roleKey,
+      roleLabel: roleKey.toUpperCase(),
+      collegeId: currentUser?.collegeId || null,
+      collegeName: currentUser?.collegeName || null,
+      collegeCode: currentUser?.collegeCode || null,
+      email: `${roleKey}@percentagex.edu`,
+      avatar: roleKey.slice(0, 2).toUpperCase(),
+    };
     setCurrentUser(user);
+    localStorage.setItem("percentagex_user", JSON.stringify(user));
+    localStorage.setItem("percentagex_role", roleKey);
     return user;
   };
 
   const logout = () => {
     setCurrentUser(null);
+    setVerifiedStudentData(null);
     localStorage.removeItem("percentagex_user");
     localStorage.removeItem("percentagex_role");
     sessionStorage.removeItem("percentagex_student_session");
+    // Clear tenant-scoped academic state to avoid cross-tenant leakage
+    setCourses([]);
+    setSubjects([]);
+    setFacultyMembers([]);
+    setStudents([]);
+    setAssignments([]);
+    setAttendanceLogs([]);
+    setInternalMarks({});
+    setAssignmentsPosted([]);
+    localStorage.removeItem("percentagex_courses");
+    localStorage.removeItem("percentagex_subjects");
+    localStorage.removeItem("percentagex_faculty");
+    localStorage.removeItem("percentagex_students");
+    localStorage.removeItem("percentagex_assigned_classes");
+    localStorage.removeItem("percentagex_attendance_logs");
+    localStorage.removeItem("percentagex_internal_marks");
+    localStorage.removeItem("percentagex_assignments_posted");
   };
 
   const updateUserProfile = async (updatedFields) => {
@@ -336,13 +412,22 @@ export function CollegeProvider({ children }) {
 
       if (data.user) {
         const merged = { ...updatedUser, ...data.user };
+        // Preserve college attributes
+        if (currentUser?.collegeName && !merged.collegeName) {
+          merged.collegeName = currentUser.collegeName;
+        }
+        if (currentUser?.collegeCode && !merged.collegeCode) {
+          merged.collegeCode = currentUser.collegeCode;
+        }
+        if (currentUser?.collegeId && !merged.collegeId) {
+          merged.collegeId = currentUser.collegeId;
+        }
         setCurrentUser(merged);
         localStorage.setItem("percentagex_user", JSON.stringify(merged));
       }
       return { success: true, message: data.message };
     } catch (err) {
       console.warn("Profile database update warning:", err.message);
-      // Even if network fails, local state updated
       return { success: true, warning: err.message };
     }
   };
@@ -733,7 +818,8 @@ export function CollegeProvider({ children }) {
     <CollegeContext.Provider
       value={{
         currentUser,
-        currentRole: currentUser?.role || "super_admin",
+        currentRole: currentUser?.role || null,
+        setAuthenticatedUser,
         switchRole,
         updateUserProfile,
         courses,

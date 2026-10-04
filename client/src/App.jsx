@@ -13,6 +13,7 @@ import LandingPage from "./pages/public/LandingPage";
 import StaffAccessLogin from "./pages/auth/StaffAccessLogin";
 import StudentAccessLogin from "./pages/student/StudentAccessLogin";
 import RequireSuperAdmin from "./components/common/RequireSuperAdmin";
+import RequireAdmin from "./components/common/RequireAdmin";
 
 // Super Admin Pages
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
@@ -124,16 +125,16 @@ function App() {
           <Route path="/faculty/profile" element={<Profile />} />
 
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/faculty" element={<AdminFaculty />} />
-          <Route path="/admin/students" element={<AdminStudents />} />
-          <Route path="/admin/courses" element={<AdminCourses />} />
-          <Route path="/admin/subjects" element={<AdminSubjects />} />
-          <Route path="/admin/sections" element={<AdminSections />} />
-          <Route path="/admin/timetable" element={<AdminTimetable />} />
-          <Route path="/admin/reports" element={<AdminReports />} />
-          <Route path="/admin/profile" element={<Profile />} />
+          <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+          <Route path="/admin/dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+          <Route path="/admin/faculty" element={<RequireAdmin><AdminFaculty /></RequireAdmin>} />
+          <Route path="/admin/students" element={<RequireAdmin><AdminStudents /></RequireAdmin>} />
+          <Route path="/admin/courses" element={<RequireAdmin><AdminCourses /></RequireAdmin>} />
+          <Route path="/admin/subjects" element={<RequireAdmin><AdminSubjects /></RequireAdmin>} />
+          <Route path="/admin/sections" element={<RequireAdmin><AdminSections /></RequireAdmin>} />
+          <Route path="/admin/timetable" element={<RequireAdmin><AdminTimetable /></RequireAdmin>} />
+          <Route path="/admin/reports" element={<RequireAdmin><AdminReports /></RequireAdmin>} />
+          <Route path="/admin/profile" element={<RequireAdmin><Profile /></RequireAdmin>} />
 
           {/* Student Authenticated Portal */}
           <Route path="/student/dashboard" element={<StudentDashboard />} />

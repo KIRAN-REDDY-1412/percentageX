@@ -106,7 +106,9 @@ function Profile() {
     }
   };
 
-  const isSuperAdmin = currentUser?.role === "super_admin";
+  const isSuperAdmin = currentUser?.role === "super_admin" && !currentUser?.collegeId;
+  const isCollegeAdmin = currentUser?.role === "admin";
+  const avatarInitials = currentUser?.avatar || (isSuperAdmin ? "SA" : isCollegeAdmin ? "CA" : "PX");
 
   return (
     <AppLayout>
@@ -141,14 +143,22 @@ function Profile() {
         <div className="profile-main-card">
           <div className="profile-header-banner">
             <div className="profile-avatar-large">
-              {currentUser?.avatar || (isSuperAdmin ? "SA" : "PX")}
+              {avatarInitials}
             </div>
             <div className="profile-title-area">
               <h2>{currentUser?.name || "Administrator"}</h2>
               <span className="profile-role-tag">
-                {currentUser?.roleLabel || (isSuperAdmin ? "Platform Super Administrator" : currentUser?.role?.toUpperCase())}
+                {currentUser?.roleLabel || (
+                  isSuperAdmin
+                    ? "Platform Super Administrator"
+                    : isCollegeAdmin
+                    ? `${currentUser?.collegeName || "College"} Administrator`
+                    : currentUser?.role?.toUpperCase()
+                )}
               </span>
-              <p className="profile-id-text">ID: {currentUser?.id || "usr-superadmin"}</p>
+              <p className="profile-id-text">
+                ID: {currentUser?.id || (isSuperAdmin ? "usr-superadmin" : "usr-admin")}
+              </p>
             </div>
           </div>
 
@@ -172,6 +182,33 @@ function Profile() {
                 <strong>Platform Super Administrator Authority</strong>
                 <p style={{ margin: "2px 0 0", color: "#14532d" }}>
                   Your login email (<strong>{currentUser?.email}</strong>) controls platform-level governance, college activation, and global settings.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* COLLEGE ADMIN CREDENTIAL BADGE */}
+          {isCollegeAdmin && (
+            <div
+              style={{
+                margin: "20px 24px 0",
+                padding: "14px 18px",
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                borderRadius: "10px",
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                color: "#1e40af",
+              }}
+            >
+              <ShieldCheck size={22} color="#2563eb" style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: "13px" }}>
+                <strong>College Administrator Authority & Scope</strong>
+                <p style={{ margin: "2px 0 0", color: "#1d4ed8" }}>
+                  Institution: <strong>{currentUser?.collegeName || "Assigned Institution"}</strong>
+                  {currentUser?.collegeCode ? ` (${currentUser.collegeCode})` : ""}.
+                  You manage academic programs, faculty, students, timetable, and attendance strictly scoped to this college.
                 </p>
               </div>
             </div>
@@ -252,6 +289,18 @@ function Profile() {
               <label>System Role</label>
               <p>{currentUser?.roleLabel || currentUser?.role?.toUpperCase()}</p>
             </div>
+
+            {/* AFFILIATED INSTITUTION (FOR COLLEGE ADMIN & STAFF) */}
+            {(currentUser?.collegeName || currentUser?.collegeId) && (
+              <div className="profile-field-item">
+                <label>Affiliated Institution</label>
+                <p>
+                  <strong>{currentUser.collegeName || "Assigned Institution"}</strong>
+                  {currentUser.collegeCode ? ` (${currentUser.collegeCode})` : ""}
+                  {currentUser.collegeId ? ` • [${currentUser.collegeId}]` : ""}
+                </p>
+              </div>
+            )}
 
             {/* OPTIONAL DEPARTMENT / ORG METADATA */}
             {currentUser?.department && (

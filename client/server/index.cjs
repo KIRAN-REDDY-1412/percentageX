@@ -134,12 +134,15 @@ app.post('/api/auth/login', async (req, res) => {
         email: user.email,
         name: user.name,
         role: user.role, // Pure database role!
-        collegeId: user.college_id,
-        departmentId: user.department_id,
-        department: user.department,
-        designation: user.designation,
-        assignedSection: user.assigned_section,
-        phone: user.phone,
+        collegeId: user.college_id || null,
+        collegeName: college ? college.name : null,
+        collegeCode: college ? college.code : null,
+        collegeType: college ? (college.college_type || college.type) : null,
+        departmentId: user.department_id || null,
+        department: user.department || null,
+        designation: user.designation || null,
+        assignedSection: user.assigned_section || null,
+        phone: user.phone || null,
       },
       college,
     });
@@ -200,6 +203,14 @@ app.put('/api/users/profile', async (req, res) => {
     const updated = updateRes.rows[0];
     console.log(`✓ Updated credentials for user ${updated.email} (${updated.role})`);
 
+    let collegeInfo = null;
+    if (updated.college_id) {
+      const colRes = await pool.query('SELECT * FROM colleges WHERE id = $1', [updated.college_id]);
+      if (colRes.rows.length > 0) {
+        collegeInfo = colRes.rows[0];
+      }
+    }
+
     res.json({
       success: true,
       message: 'Profile details and login credentials successfully updated.',
@@ -211,7 +222,10 @@ app.put('/api/users/profile', async (req, res) => {
         phone: updated.phone,
         department: updated.department,
         designation: updated.designation,
-        collegeId: updated.college_id,
+        collegeId: updated.college_id || null,
+        collegeName: collegeInfo ? collegeInfo.name : null,
+        collegeCode: collegeInfo ? collegeInfo.code : null,
+        collegeType: collegeInfo ? (collegeInfo.college_type || collegeInfo.type) : null,
         assignedSection: updated.assigned_section,
       },
     });

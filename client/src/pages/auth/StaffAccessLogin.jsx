@@ -20,7 +20,7 @@ function StaffAccessLogin({ isSuperAdminPortal = false }) {
   const navigate = useNavigate();
   const location = useLocation();
   const { collegeIdentifier } = useParams();
-  const { switchRole } = useCollege();
+  const { setAuthenticatedUser } = useCollege();
   const { showToast } = useToast();
 
   const isSuperAdminMode = isSuperAdminPortal || location.pathname.includes("/super-admin");
@@ -204,13 +204,19 @@ function StaffAccessLogin({ isSuperAdminPortal = false }) {
         throw new Error("Authentication failed: No staff account found with this email and credentials.");
       }
 
+      // Attach college properties if available
+      if (college && !user.collegeName) {
+        user.collegeName = college.name;
+        user.collegeCode = college.code;
+        user.collegeType = college.college_type || college.type;
+        user.collegeId = user.collegeId || college.id;
+      }
+
       // Role is determined strictly by authenticated record
       const role = user.role;
 
-      // Update CollegeContext session
-      switchRole(role);
-      localStorage.setItem("percentagex_user", JSON.stringify(user));
-      localStorage.setItem("percentagex_role", role);
+      // Update CollegeContext session with the EXACT authenticated user
+      setAuthenticatedUser(user);
 
       showToast(`Welcome back, ${user.name}! Authenticated as ${role.toUpperCase()}.`, "success");
 

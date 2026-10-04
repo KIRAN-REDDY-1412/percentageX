@@ -8,6 +8,7 @@ function RequireSuperAdmin({ children }) {
   const isSuperAdmin =
     currentUser &&
     currentUser.role === "super_admin" &&
+    !currentUser.collegeId &&
     localStorage.getItem("percentagex_role") === "super_admin";
 
   if (!isSuperAdmin) {
