@@ -12,6 +12,7 @@ import LandingPage from "./pages/public/LandingPage";
 // Auth
 import StaffAccessLogin from "./pages/auth/StaffAccessLogin";
 import StudentAccessLogin from "./pages/student/StudentAccessLogin";
+import RequireSuperAdmin from "./components/common/RequireSuperAdmin";
 
 // Super Admin Pages
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
@@ -92,12 +93,12 @@ function App() {
           <Route path="/student-access" element={<StudentAccessLogin />} />
 
           {/* Super Admin Routes */}
-          <Route path="/super-admin/login" element={<StaffAccessLogin />} />
-          <Route path="/super-admin" element={<SuperAdminDashboard />} />
-          <Route path="/super-admin/dashboard" element={<SuperAdminDashboard />} />
-          <Route path="/super-admin/colleges" element={<Colleges />} />
-          <Route path="/super-admin/colleges/create" element={<CreateCollege />} />
-          <Route path="/super-admin/profile" element={<Profile />} />
+          <Route path="/super-admin/login" element={<StaffAccessLogin isSuperAdminPortal={true} />} />
+          <Route path="/super-admin" element={<RequireSuperAdmin><SuperAdminDashboard /></RequireSuperAdmin>} />
+          <Route path="/super-admin/dashboard" element={<RequireSuperAdmin><SuperAdminDashboard /></RequireSuperAdmin>} />
+          <Route path="/super-admin/colleges" element={<RequireSuperAdmin><Colleges /></RequireSuperAdmin>} />
+          <Route path="/super-admin/colleges/create" element={<RequireSuperAdmin><CreateCollege /></RequireSuperAdmin>} />
+          <Route path="/super-admin/profile" element={<RequireSuperAdmin><Profile /></RequireSuperAdmin>} />
 
           {/* HOD Routes (B.Tech Department Authority) */}
           <Route path="/hod" element={<HodDashboard />} />

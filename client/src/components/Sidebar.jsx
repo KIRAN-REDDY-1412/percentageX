@@ -89,7 +89,7 @@ const ROLE_MENUS = {
 function Sidebar({ isOpen = false, onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, switchRole } = useCollege();
+  const { currentUser, switchRole, logout } = useCollege();
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
 
   // Detect active role from path or currentUser
@@ -242,9 +242,11 @@ function Sidebar({ isOpen = false, onClose }) {
         className="sidebar-item logout"
         onClick={() => {
           if (onClose) onClose();
-          if (activeRole === "student") {
-            sessionStorage.removeItem("percentagex_student_session");
-            navigate("/student-access");
+          if (logout) logout();
+          if (activeRole === "super_admin") {
+            navigate("/super-admin/login");
+          } else if (activeRole === "student") {
+            navigate("/student");
           } else {
             navigate("/staff");
           }

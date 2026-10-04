@@ -15,18 +15,22 @@ import {
 const CollegeContext = createContext(null);
 
 export function CollegeProvider({ children }) {
-  // Current logged in user & role
+  // Current logged in user & role (null if not logged in)
   const [currentUser, setCurrentUser] = useState(() => {
     const savedUser = localStorage.getItem("percentagex_user");
     if (savedUser) {
       try {
-        return JSON.parse(savedUser);
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.role) return parsed;
       } catch {
         // fallback
       }
     }
-    const savedRole = localStorage.getItem("percentagex_role") || "super_admin";
-    return INITIAL_USERS[savedRole] || INITIAL_USERS.super_admin;
+    const savedRole = localStorage.getItem("percentagex_role");
+    if (savedRole && INITIAL_USERS[savedRole]) {
+      return INITIAL_USERS[savedRole];
+    }
+    return null;
   });
 
   // Colleges (Multi-Tenant platform)
@@ -84,8 +88,10 @@ export function CollegeProvider({ children }) {
 
   // Sync state changes with localStorage
   useEffect(() => {
-    localStorage.setItem("percentagex_role", currentUser.role || "super_admin");
-    localStorage.setItem("percentagex_user", JSON.stringify(currentUser));
+    if (currentUser) {
+      localStorage.setItem("percentagex_role", currentUser.role);
+      localStorage.setItem("percentagex_user", JSON.stringify(currentUser));
+    }
   }, [currentUser]);
 
   useEffect(() => {
@@ -292,6 +298,13 @@ export function CollegeProvider({ children }) {
     const user = INITIAL_USERS[roleKey] || INITIAL_USERS.super_admin;
     setCurrentUser(user);
     return user;
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem("percentagex_user");
+    localStorage.removeItem("percentagex_role");
+    sessionStorage.removeItem("percentagex_student_session");
   };
 
   const updateUserProfile = async (updatedFields) => {
@@ -755,6 +768,7 @@ export function CollegeProvider({ children }) {
         updateCollegeDetails,
         verifiedStudentData,
         setVerifiedStudent,
+        logout,
       }}
     >
       {children}

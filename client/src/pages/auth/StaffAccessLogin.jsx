@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
 import {
   ShieldCheck,
   Building,
@@ -16,11 +16,14 @@ import {
 import { useCollege } from "../../context/CollegeContext";
 import { useToast } from "../../context/ToastContext";
 
-function StaffAccessLogin() {
+function StaffAccessLogin({ isSuperAdminPortal = false }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const { collegeIdentifier } = useParams();
   const { switchRole } = useCollege();
   const { showToast } = useToast();
+
+  const isSuperAdminMode = isSuperAdminPortal || location.pathname.includes("/super-admin");
 
   const [college, setCollege] = useState(null);
   const [loadingCollege, setLoadingCollege] = useState(!!collegeIdentifier);
@@ -28,7 +31,7 @@ function StaffAccessLogin() {
   const [isInactive, setIsInactive] = useState(false);
 
   // Form state
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => (isSuperAdminMode ? "kiranreddy0509@gmail.com" : ""));
   const [password, setPassword] = useState("");
   const [manualCode, setManualCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -282,6 +285,30 @@ function StaffAccessLogin() {
                 Official Staff & Administration Gateway
               </p>
             </>
+          ) : isSuperAdminMode ? (
+            <>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "4px 10px",
+                  borderRadius: "20px",
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  background: "#fef3c7",
+                  color: "#b45309",
+                  marginBottom: "8px",
+                }}
+              >
+                <ShieldCheck size={13} />
+                <span>Platform Governance Gateway</span>
+              </div>
+              <h1 style={{ fontSize: "20px", marginBottom: "4px" }}>Super Administrator Portal</h1>
+              <p style={{ color: "#64748b", fontSize: "13px" }}>
+                Platform authentication for multi-tenant institution governance & activation
+              </p>
+            </>
           ) : (
             <>
               <div
@@ -380,7 +407,7 @@ function StaffAccessLogin() {
 
         {/* LOGIN FORM */}
         <form onSubmit={handleStaffLogin} className="login-form">
-          {!collegeIdentifier && (
+          {!collegeIdentifier && !isSuperAdminMode && (
             <div className="form-group">
               <label>Institutional Tenant Code (Optional)</label>
               <input
@@ -393,14 +420,14 @@ function StaffAccessLogin() {
           )}
 
           <div className="form-group">
-            <label>Staff Official Email *</label>
+            <label>{isSuperAdminMode ? "Super Admin Official Email *" : "Staff Official Email *"}</label>
             <div className="search-input-wrapper" style={{ padding: "0 10px" }}>
               <Mail size={16} color="#64748b" />
               <input
                 type="email"
                 required
                 disabled={isInactive}
-                placeholder="faculty.name@college.edu"
+                placeholder={isSuperAdminMode ? "kiranreddy0509@gmail.com" : "faculty.name@college.edu"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -408,7 +435,7 @@ function StaffAccessLogin() {
           </div>
 
           <div className="form-group">
-            <label>Staff Password *</label>
+            <label>{isSuperAdminMode ? "Super Admin Password *" : "Staff Password *"}</label>
             <div className="search-input-wrapper" style={{ padding: "0 10px" }}>
               <Lock size={16} color="#64748b" />
               <input
@@ -441,9 +468,12 @@ function StaffAccessLogin() {
             type="submit"
             className="login-submit-button"
             disabled={submitting || isInactive}
-            style={{ opacity: isInactive ? 0.6 : 1 }}
+            style={{
+              opacity: isInactive ? 0.6 : 1,
+              background: isSuperAdminMode ? "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)" : undefined,
+            }}
           >
-            <span>{submitting ? "Authenticating Staff..." : "Sign In to Staff Portal"}</span>
+            <span>{submitting ? "Authenticating..." : isSuperAdminMode ? "Sign In to Super Admin Console" : "Sign In to Staff Portal"}</span>
             <ArrowRight size={18} />
           </button>
         </form>
