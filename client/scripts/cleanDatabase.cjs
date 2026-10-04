@@ -50,8 +50,8 @@ async function cleanDatabase() {
     VALUES (
       'usr-superadmin',
       'Platform Super Admin',
-      'superadmin@percentagex.edu',
-      'password123',
+      'kiranreddy0509@gmail.com',
+      'kiran@1006',
       'super_admin',
       NULL,
       'Platform Governance',
@@ -61,9 +61,9 @@ async function cleanDatabase() {
       name = 'Platform Super Admin',
       role = 'super_admin',
       college_id = NULL,
-      password_hash = 'password123';
+      password_hash = 'kiran@1006';
   `);
-  console.log('✓ Seeded root Super Admin: superadmin@percentagex.edu / password123');
+  console.log('✓ Seeded root Super Admin: kiranreddy0509@gmail.com / kiran@1006');
 
   // Verify database state
   const colCount = await pool.query('SELECT count(*) FROM colleges');

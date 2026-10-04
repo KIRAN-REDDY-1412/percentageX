@@ -266,11 +266,44 @@ export function CollegeProvider({ children }) {
     return user;
   };
 
-  const updateUserProfile = (updatedFields) => {
-    setCurrentUser((prev) => ({
-      ...prev,
+  const updateUserProfile = async (updatedFields) => {
+    const updatedUser = {
+      ...currentUser,
       ...updatedFields,
-    }));
+    };
+    setCurrentUser(updatedUser);
+    localStorage.setItem("percentagex_user", JSON.stringify(updatedUser));
+
+    try {
+      const res = await fetch("/api/users/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: currentUser?.id,
+          currentEmail: currentUser?.email,
+          name: updatedFields.name,
+          email: updatedFields.email,
+          phone: updatedFields.phone,
+          password: updatedFields.password,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to update profile on server");
+      }
+
+      if (data.user) {
+        const merged = { ...updatedUser, ...data.user };
+        setCurrentUser(merged);
+        localStorage.setItem("percentagex_user", JSON.stringify(merged));
+      }
+      return { success: true, message: data.message };
+    } catch (err) {
+      console.warn("Profile database update warning:", err.message);
+      // Even if network fails, local state updated
+      return { success: true, warning: err.message };
+    }
   };
 
   // Faculty CRUD

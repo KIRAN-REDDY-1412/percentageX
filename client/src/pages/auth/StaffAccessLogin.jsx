@@ -59,8 +59,8 @@ function StaffAccessLogin() {
 
   // Quick root Super Admin credentials helper
   const handleFillSuperAdmin = () => {
-    setEmail("superadmin@percentagex.edu");
-    setPassword("password123");
+    setEmail("kiranreddy0509@gmail.com");
+    setPassword("kiran@1006");
     showToast("Loaded root Super Administrator credentials", "info");
   };
 
@@ -329,7 +329,7 @@ function StaffAccessLogin() {
                 style={{ fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "5px", color: "#64748b" }}
               >
                 <Sparkles size={13} color="#2563eb" />
-                <span>Fill Super Admin (superadmin@percentagex.edu)</span>
+                <span>Fill Super Admin (kiranreddy0509@gmail.com)</span>
               </button>
             </div>
           )}

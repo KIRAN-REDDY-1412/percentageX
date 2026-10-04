@@ -11,7 +11,7 @@ export const INITIAL_USERS = {
     name: "Platform Super Admin",
     role: "super_admin",
     roleLabel: "Platform Super Administrator",
-    email: "superadmin@percentagex.edu",
+    email: "kiranreddy0509@gmail.com",
     phone: "+91 98888 00000",
     avatar: "SA",
     department: "Platform Governance",

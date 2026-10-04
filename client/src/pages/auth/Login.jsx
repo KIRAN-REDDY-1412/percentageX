@@ -25,7 +25,7 @@ function Login() {
       role: "super_admin",
       title: "Super Admin",
       desc: "Global platform & multi-college",
-      email: "superadmin@percentagex.edu",
+      email: "kiranreddy0509@gmail.com",
       icon: Shield,
       color: "#d97706",
       bg: "#fef3c7",
@@ -86,6 +86,7 @@ function Login() {
   const handleRoleSelect = (p) => {
     setSelectedRole(p.role);
     setEmail(p.email);
+    setPassword(p.role === "super_admin" ? "kiran@1006" : "password123");
   };
 
   const handleLogin = (e) => {
