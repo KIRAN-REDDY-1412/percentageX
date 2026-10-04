@@ -880,6 +880,10 @@ app.delete('/api/academic/students/:id', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`PercentageX API server running on port ${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`PercentageX API server running on port ${port}`);
+  });
+}
+
+module.exports = app;

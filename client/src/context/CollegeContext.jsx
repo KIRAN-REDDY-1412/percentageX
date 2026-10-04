@@ -128,7 +128,8 @@ export function CollegeProvider({ children }) {
   const fetchColleges = async () => {
     try {
       const res = await fetch("/api/colleges");
-      if (res.ok) {
+      const contentType = res.headers.get("content-type") || "";
+      if (res.ok && contentType.includes("application/json")) {
         const data = await res.json();
         if (Array.isArray(data)) setColleges(data);
       }
@@ -208,7 +209,8 @@ export function CollegeProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(collegeData),
       });
-      if (res.ok) {
+      const contentType = res.headers.get("content-type") || "";
+      if (res.ok && contentType.includes("application/json")) {
         const newCol = await res.json();
         setColleges((prev) => [newCol, ...prev]);
         return newCol;
