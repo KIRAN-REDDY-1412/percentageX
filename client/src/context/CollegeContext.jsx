@@ -650,7 +650,11 @@ export function CollegeProvider({ children }) {
       college_id,
       id: student.id || `stu-${student.rollNumber || Date.now().toString().slice(-4)}`,
       status: student.status || "Active",
-      attendancePercentage: student.attendancePercentage || 85,
+      section: student.section || "Unassigned",
+      attendancePercentage:
+        student.attendancePercentage !== undefined
+          ? Number(student.attendancePercentage)
+          : 0,
     };
     setStudents((prev) => [newStudent, ...prev]);
 

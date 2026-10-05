@@ -17,7 +17,7 @@ function InchargeReports() {
   );
 
   const atRiskStudents = sectionStudents.filter(
-    (s) => (s.attendancePercentage || 85) < 75
+    (s) => s.attendancePercentage !== undefined && s.attendancePercentage > 0 && s.attendancePercentage < 75
   );
 
   const handleDownload = () => {

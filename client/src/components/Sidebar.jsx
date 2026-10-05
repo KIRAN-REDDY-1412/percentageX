@@ -16,6 +16,7 @@ import {
   ArrowLeftRight,
   Building,
   School,
+  X,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -147,10 +148,20 @@ function Sidebar({ isOpen = false, onClose }) {
       {/* LOGO */}
       <div className="sidebar-logo">
         <div className="logo-mark">P</div>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2>PercentageX</h2>
           <span>College Management</span>
         </div>
+        {isOpen && (
+          <button
+            type="button"
+            className="sidebar-mobile-close"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
+        )}
       </div>
 
       {/* USER & ROLE BADGE */}

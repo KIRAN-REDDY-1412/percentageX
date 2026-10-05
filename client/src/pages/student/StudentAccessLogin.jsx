@@ -135,10 +135,39 @@ function StudentAccessLogin() {
         );
 
         if (matched) {
+          const savedLogs = JSON.parse(localStorage.getItem("percentagex_attendance_logs") || "[]");
+          const hasSection = Boolean(
+            matched.section &&
+            matched.section !== "Unassigned" &&
+            matched.section !== "Not Assigned"
+          );
+          const studentLogs = hasSection
+            ? savedLogs.filter(
+                (log) =>
+                  log.section === matched.section &&
+                  log.course === matched.course &&
+                  log.year === matched.year
+              )
+            : [];
+          const totalHeld = studentLogs.length;
+          const attended = studentLogs.filter(
+            (log) => !(log.absentRolls || []).includes(matched.rollNumber)
+          ).length;
+          const overallPct =
+            totalHeld > 0
+              ? Math.round((attended / totalHeld) * 100)
+              : Number(matched.attendancePercentage) || 0;
+
           verifiedData = {
             student: matched,
             college: college || { name: "Academic Campus", code: activeIdentifier || "CAMPUS" },
-            stats: { attended: 42, totalHeld: 50, overallPercentage: 84 },
+            stats: {
+              attended: attended,
+              totalHeld: totalHeld,
+              missed: Math.max(0, totalHeld - attended),
+              overallPercentage: overallPct,
+            },
+            subjectAttendance: [],
           };
         } else if (cleanRoll === "2301" || cleanRoll === "roll-2301") {
           verifiedData = {

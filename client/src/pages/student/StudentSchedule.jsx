@@ -10,25 +10,43 @@ function StudentSchedule() {
   const { currentUser, verifiedStudentData } = useCollege();
   const [selectedDay, setSelectedDay] = useState("Thursday");
 
+  const isDemo = !verifiedStudentData?.student && (!currentUser || currentUser?.role !== "student");
+
   const student =
     verifiedStudentData?.student ||
     (currentUser?.course
       ? currentUser
-      : {
+      : isDemo
+      ? {
           rollNumber: "2301",
           name: "Rahul Varma",
           course: "B.Tech - CSE",
           year: "2nd Year",
           section: "Section A",
+        }
+      : currentUser || {
+          rollNumber: "N/A",
+          name: "Student",
+          course: "Course N/A",
+          year: "Year N/A",
+          section: "Unassigned",
         });
 
-  // Timetable strictly for this student's assigned section
-  const dayClasses = getScheduleForSection(
-    student.course,
-    student.year,
-    student.section,
-    selectedDay
+  const hasAssignedSection = Boolean(
+    student.section &&
+    student.section !== "Unassigned" &&
+    student.section !== "Not Assigned"
   );
+
+  // Timetable strictly for this student's assigned section
+  const dayClasses = hasAssignedSection
+    ? getScheduleForSection(
+        student.course,
+        student.year,
+        student.section,
+        selectedDay
+      )
+    : [];
 
   return (
     <AppLayout>
@@ -39,7 +57,8 @@ function StudentSchedule() {
             <p className="breadcrumb">Student / Schedule</p>
             <h1>My Section Timetable</h1>
             <p className="page-description">
-              Class schedule for {student.course} • {student.year} ({student.section})
+              Class schedule for {student.course} • {student.year} (
+              {hasAssignedSection ? student.section : "No Section Assigned"})
             </p>
           </div>
         </div>
@@ -63,12 +82,24 @@ function StudentSchedule() {
           <div className="card-box-header">
             <div>
               <h2>{selectedDay}'s Classes ({dayClasses.length})</h2>
-              <p>Lecture periods for {student.year} {student.section}</p>
+              <p>
+                {hasAssignedSection
+                  ? `Lecture periods for ${student.year} ${student.section}`
+                  : "No section assigned yet"}
+              </p>
             </div>
           </div>
 
           <div className="class-list">
-            {dayClasses.length === 0 ? (
+            {!hasAssignedSection ? (
+              <div className="no-classes">
+                <CalendarDays size={30} />
+                <h3>No Section Assigned</h3>
+                <p>
+                  You have not been assigned to a class section yet. Please contact your college administrator to allocate your section.
+                </p>
+              </div>
+            ) : dayClasses.length === 0 ? (
               <div className="no-classes">
                 <CalendarDays size={30} />
                 <h3>No Classes on {selectedDay}</h3>

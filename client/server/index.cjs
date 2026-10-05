@@ -312,21 +312,31 @@ app.post('/api/student-access/verify', async (req, res) => {
     }
 
     // Verified! Fetch strictly THIS student's academic records
-    // 1. Timetable for this student's section
-    const timetableRes = await pool.query(
-      `SELECT * FROM timetable_assignments 
-       WHERE college_id = $1 AND course = $2 AND year = $3 AND section = $4
-       ORDER BY day, time`,
-      [student.college_id, student.course, student.year, student.section]
+    const hasSection = Boolean(
+      student.section &&
+      student.section !== 'Unassigned' &&
+      student.section !== 'Not Assigned'
     );
 
+    // 1. Timetable for this student's section
+    const timetableRes = hasSection
+      ? await pool.query(
+          `SELECT * FROM timetable_assignments 
+           WHERE college_id = $1 AND course = $2 AND year = $3 AND section = $4
+           ORDER BY day, time`,
+          [student.college_id, student.course, student.year, student.section]
+        )
+      : { rows: [] };
+
     // 2. Attendance Sessions for this section
-    const attRes = await pool.query(
-      `SELECT * FROM attendance_sessions 
-       WHERE college_id = $1 AND course = $2 AND year = $3 AND section = $4
-       ORDER BY date DESC`,
-      [student.college_id, student.course, student.year, student.section]
-    );
+    const attRes = hasSection
+      ? await pool.query(
+          `SELECT * FROM attendance_sessions 
+           WHERE college_id = $1 AND course = $2 AND year = $3 AND section = $4
+           ORDER BY date DESC`,
+          [student.college_id, student.course, student.year, student.section]
+        )
+      : { rows: [] };
 
     // Compute student's exact personal attendance stats
     let totalHeld = attRes.rows.length;
@@ -345,8 +355,7 @@ app.post('/api/student-access/verify', async (req, res) => {
       if (!wasAbsent) subjectBreakdown[session.subject].attended++;
     }
 
-    // Default baseline if session count is small
-    const overallPct = totalHeld > 0 ? Math.round((attendedCount / totalHeld) * 100) : 85;
+    const overallPct = totalHeld > 0 ? Math.round((attendedCount / totalHeld) * 100) : 0;
 
     // 3. Internal Marks for this student
     const marksRes = await pool.query(
@@ -355,12 +364,14 @@ app.post('/api/student-access/verify', async (req, res) => {
     );
 
     // 4. Assignments for this student's section
-    const assignRes = await pool.query(
-      `SELECT * FROM assignments 
-       WHERE college_id = $1 AND course = $2 AND year = $3 AND section = $4
-       ORDER BY due_date ASC`,
-      [student.college_id, student.course, student.year, student.section]
-    );
+    const assignRes = hasSection
+      ? await pool.query(
+          `SELECT * FROM assignments 
+           WHERE college_id = $1 AND course = $2 AND year = $3 AND section = $4
+           ORDER BY due_date ASC`,
+          [student.college_id, student.course, student.year, student.section]
+        )
+      : { rows: [] };
 
     res.json({
       success: true,
@@ -377,9 +388,9 @@ app.post('/api/student-access/verify', async (req, res) => {
         collegeId: student.college_id,
       },
       stats: {
-        totalHeld: totalHeld || 50,
-        attended: attendedCount || 42,
-        missed: (totalHeld || 50) - (attendedCount || 42),
+        totalHeld: totalHeld,
+        attended: attendedCount,
+        missed: Math.max(0, totalHeld - attendedCount),
         overallPercentage: overallPct,
       },
       subjectAttendance: Object.entries(subjectBreakdown).map(([subj, data]) => ({
@@ -387,7 +398,7 @@ app.post('/api/student-access/verify', async (req, res) => {
         faculty: data.faculty,
         attended: data.attended,
         total: data.total,
-        percentage: data.total > 0 ? Math.round((data.attended / data.total) * 100) : 85,
+        percentage: data.total > 0 ? Math.round((data.attended / data.total) * 100) : 0,
       })),
       timetable: timetableRes.rows,
       marks: marksRes.rows,

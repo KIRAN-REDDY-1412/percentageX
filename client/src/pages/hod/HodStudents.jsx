@@ -90,7 +90,13 @@ function HodStudents() {
                       {st.course} • {st.year}
                     </td>
                     <td>
-                      <span className="section-pill">{st.section}</span>
+                      {st.section &&
+                      st.section !== "Unassigned" &&
+                      st.section !== "Not Assigned" ? (
+                        <span className="section-pill">{st.section}</span>
+                      ) : (
+                        <span className="section-pill unassigned">Not Assigned</span>
+                      )}
                     </td>
                     <td>
                       <div className="contact-cell">
@@ -101,14 +107,16 @@ function HodStudents() {
                     <td>
                       <span
                         className={`attendance-pill ${
-                          st.attendancePercentage >= 85
+                          (st.attendancePercentage ?? 0) >= 85
                             ? "high"
-                            : st.attendancePercentage >= 75
+                            : (st.attendancePercentage ?? 0) >= 75
                             ? "medium"
-                            : "low"
+                            : (st.attendancePercentage ?? 0) > 0
+                            ? "low"
+                            : "neutral"
                         }`}
                       >
-                        {st.attendancePercentage || 85}%
+                        {st.attendancePercentage ?? 0}%
                       </span>
                     </td>
                     <td>

@@ -17,42 +17,94 @@ function StudentDashboard() {
   const { currentUser, assignmentsPosted, internalMarks, verifiedStudentData } = useCollege();
 
   // Student profile (Uses verified identity from college verification link)
+  const isDemo = !verifiedStudentData?.student && currentUser?.role !== "student";
+
+  // Student profile (Uses verified identity from college verification link)
   const student =
     verifiedStudentData?.student ||
     (currentUser?.role === "student" && currentUser?.course
       ? currentUser
-      : {
+      : isDemo
+      ? {
           rollNumber: "2301",
           name: "Rahul Varma",
           course: "B.Tech - CSE",
           year: "2nd Year",
           section: "Section A",
+        }
+      : currentUser || {
+          rollNumber: "N/A",
+          name: "Student",
+          course: "Course N/A",
+          year: "Year N/A",
+          section: "Unassigned",
         });
+
+  const hasAssignedSection = Boolean(
+    student.section &&
+    student.section !== "Unassigned" &&
+    student.section !== "Not Assigned"
+  );
 
   // Student's today schedule (Thursday demo)
   const todayDay = "Thursday";
-  const studentTodayClasses = getScheduleForSection(
-    student.course,
-    student.year,
-    student.section,
-    todayDay
-  );
+  const studentTodayClasses = hasAssignedSection
+    ? getScheduleForSection(
+        student.course,
+        student.year,
+        student.section,
+        todayDay
+      )
+    : [];
 
   // Attendance metrics from personal verification record
-  const attendedClasses = verifiedStudentData?.stats?.attended || 42;
-  const totalClasses = verifiedStudentData?.stats?.totalHeld || 50;
-  const overallPercentage = verifiedStudentData?.stats?.overallPercentage || 84;
+  const attendedClasses =
+    verifiedStudentData?.stats?.attended !== undefined
+      ? verifiedStudentData.stats.attended
+      : isDemo
+      ? 42
+      : (student.attendedClasses || 0);
+
+  const totalClasses =
+    verifiedStudentData?.stats?.totalHeld !== undefined
+      ? verifiedStudentData.stats.totalHeld
+      : isDemo
+      ? 50
+      : (student.totalClasses || 0);
+
+  const overallPercentage =
+    verifiedStudentData?.stats?.overallPercentage !== undefined
+      ? verifiedStudentData.stats.overallPercentage
+      : totalClasses > 0
+      ? Math.round((attendedClasses / totalClasses) * 100)
+      : isDemo
+      ? 84
+      : (student.attendancePercentage || 0);
 
   // Pending assignments for this student's class
-  const classAssignments = assignmentsPosted.filter(
-    (a) => !a.year || (a.year === student.year && a.course === student.course)
-  );
+  const classAssignments = hasAssignedSection
+    ? assignmentsPosted.filter(
+        (a) =>
+          (!a.year || a.year === student.year) &&
+          (!a.course || a.course === student.course) &&
+          (!a.section || a.section === student.section)
+      )
+    : [];
   const pendingAssignments = classAssignments.filter(
     (a) => a.studentStatus === "Pending"
   );
 
-  // Latest marks for student 2301
-  const studentMarks = internalMarks[student.rollNumber || "2301"] || {};
+  // Latest marks for student
+  const studentMarks = (student.rollNumber && internalMarks[student.rollNumber]) || {};
+  const hasMarks = Object.keys(studentMarks).length > 0;
+  const avgMarks = hasMarks
+    ? Math.round(
+        Object.values(studentMarks).reduce(
+          (acc, curr) => acc + (curr.total || 0),
+          0
+        ) / Object.values(studentMarks).length
+      )
+    : 0;
 
   return (
     <AppLayout>
@@ -63,7 +115,12 @@ function StudentDashboard() {
             <p className="small-heading">Student Portal • {student.rollNumber}</p>
             <h1>Welcome back, {student.name} 👋</h1>
             <p className="page-description">
-              {student.course} • {student.year} • {student.section}
+              {student.course} • {student.year} •{" "}
+              {hasAssignedSection ? (
+                <span className="section-pill">{student.section}</span>
+              ) : (
+                <span className="section-pill unassigned">No Section Assigned</span>
+              )}
             </p>
           </div>
 
@@ -71,7 +128,9 @@ function StudentDashboard() {
             <span>Overall Attendance</span>
             <strong><StatCounter value={overallPercentage} suffix="%" /></strong>
             <small>
-              {attendedClasses} / {totalClasses} Classes Attended
+              {totalClasses > 0
+                ? `${attendedClasses} / ${totalClasses} Classes Attended`
+                : "No classes conducted yet"}
             </small>
           </div>
         </div>
@@ -88,8 +147,24 @@ function StudentDashboard() {
             <div className="stat-details">
               <span>Attendance Status</span>
               <strong><StatCounter value={overallPercentage} suffix="%" /></strong>
-              <small className="stat-growth green-text">
-                <TrendingUp size={12} /> Above 75% Minimum
+              <small
+                className={`stat-growth ${
+                  totalClasses === 0
+                    ? "text-slate-500"
+                    : overallPercentage >= 75
+                    ? "green-text"
+                    : "red-text"
+                }`}
+              >
+                {totalClasses === 0 ? (
+                  "No Sessions Held Yet"
+                ) : overallPercentage >= 75 ? (
+                  <>
+                    <TrendingUp size={12} /> Above 75% Minimum
+                  </>
+                ) : (
+                  "Below 75% Minimum"
+                )}
               </small>
             </div>
           </div>
@@ -104,7 +179,9 @@ function StudentDashboard() {
             <div className="stat-details">
               <span>Today's Classes</span>
               <strong><StatCounter value={studentTodayClasses.length} /> Classes</strong>
-              <small className="stat-sub">{todayDay} Timetable</small>
+              <small className="stat-sub">
+                {hasAssignedSection ? `${todayDay} Timetable` : "Section Not Assigned"}
+              </small>
             </div>
           </div>
 
@@ -133,8 +210,10 @@ function StudentDashboard() {
             </div>
             <div className="stat-details">
               <span>Internal Marks</span>
-              <strong>36 / 40 Avg</strong>
-              <small className="stat-growth green-text">Continuous Assessment</small>
+              <strong>{hasMarks ? `${avgMarks} / 40 Avg` : "N/A"}</strong>
+              <small className={hasMarks ? "stat-growth green-text" : "stat-sub"}>
+                {hasMarks ? "Continuous Assessment" : "No marks entered yet"}
+              </small>
             </div>
           </div>
         </div>
@@ -146,7 +225,11 @@ function StudentDashboard() {
             <div className="card-box-header">
               <div>
                 <h2>Today's Class Schedule ({todayDay})</h2>
-                <p>Classes for {student.year} {student.section}</p>
+                <p>
+                  {hasAssignedSection
+                    ? `Classes for ${student.year} ${student.section}`
+                    : "No section assigned yet"}
+                </p>
               </div>
               <button
                 className="text-btn"
@@ -158,7 +241,11 @@ function StudentDashboard() {
             </div>
 
             <div className="student-classes-timeline">
-              {studentTodayClasses.length === 0 ? (
+              {!hasAssignedSection ? (
+                <p className="empty-message">
+                  You are not assigned to a section yet. Your daily class schedule will appear here once your section is allocated.
+                </p>
+              ) : studentTodayClasses.length === 0 ? (
                 <p className="empty-message">No classes scheduled for today.</p>
               ) : (
                 studentTodayClasses.map((item, index) => (
@@ -199,25 +286,31 @@ function StudentDashboard() {
               </div>
 
               <div className="student-assignments-mini-list">
-                {classAssignments.slice(0, 3).map((asn) => (
-                  <div className="mini-asn-item" key={asn.id}>
-                    <div className="mini-asn-info">
-                      <strong>{asn.title}</strong>
-                      <span>
-                        {asn.subject} • Due {asn.dueDate}
+                {classAssignments.length === 0 ? (
+                  <p className="empty-message" style={{ padding: "12px 0", color: "#64748b", margin: 0 }}>
+                    No pending assignments.
+                  </p>
+                ) : (
+                  classAssignments.slice(0, 3).map((asn) => (
+                    <div className="mini-asn-item" key={asn.id}>
+                      <div className="mini-asn-info">
+                        <strong>{asn.title}</strong>
+                        <span>
+                          {asn.subject} • Due {asn.dueDate}
+                        </span>
+                      </div>
+                      <span
+                        className={`status-pill ${
+                          asn.studentStatus === "Submitted"
+                            ? "submitted"
+                            : "pending"
+                        }`}
+                      >
+                        {asn.studentStatus}
                       </span>
                     </div>
-                    <span
-                      className={`status-pill ${
-                        asn.studentStatus === "Submitted"
-                          ? "submitted"
-                          : "pending"
-                      }`}
-                    >
-                      {asn.studentStatus}
-                    </span>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 
@@ -234,12 +327,18 @@ function StudentDashboard() {
               </div>
 
               <div className="mini-marks-list">
-                {Object.entries(studentMarks).map(([subj, marks]) => (
-                  <div className="mini-mark-row" key={subj}>
-                    <span>{subj}</span>
-                    <strong>{marks.total} / 40</strong>
-                  </div>
-                ))}
+                {!hasMarks ? (
+                  <p className="empty-message" style={{ padding: "12px 0", color: "#64748b", margin: 0 }}>
+                    No internal marks recorded yet.
+                  </p>
+                ) : (
+                  Object.entries(studentMarks).map(([subj, marks]) => (
+                    <div className="mini-mark-row" key={subj}>
+                      <span>{subj}</span>
+                      <strong>{marks.total} / 40</strong>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

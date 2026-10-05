@@ -77,21 +77,25 @@ function InchargeStudents() {
                     <td>
                       <span
                         className={`attendance-pill ${
-                          s.attendancePercentage >= 85
+                          (s.attendancePercentage ?? 0) >= 85
                             ? "high"
-                            : s.attendancePercentage >= 75
+                            : (s.attendancePercentage ?? 0) >= 75
                             ? "medium"
-                            : "low"
+                            : (s.attendancePercentage ?? 0) > 0
+                            ? "low"
+                            : "neutral"
                         }`}
                       >
-                        {s.attendancePercentage || 85}%
+                        {s.attendancePercentage ?? 0}%
                       </span>
                     </td>
                     <td>
-                      {s.attendancePercentage < 75 ? (
+                      {(s.attendancePercentage ?? 0) > 0 && (s.attendancePercentage ?? 0) < 75 ? (
                         <span className="warning-tag">
                           <AlertCircle size={12} /> Shortage Warning
                         </span>
+                      ) : (s.attendancePercentage ?? 0) === 0 ? (
+                        <span className="neutral-tag" style={{ fontSize: "11px", color: "#64748b" }}>New Student</span>
                       ) : (
                         <span className="safe-tag">Regular</span>
                       )}

@@ -12,7 +12,7 @@ import { useCollege } from "../../context/CollegeContext";
 import { useToast } from "../../context/ToastContext";
 
 function AdminStudents() {
-  const { students, addStudent, editStudent, deleteStudent } =
+  const { students, addStudent, editStudent, deleteStudent, courses } =
     useCollege();
   const { showToast } = useToast();
 
@@ -31,8 +31,8 @@ function AdminStudents() {
     phone: "",
     course: "B.Tech - CSE",
     year: "2nd Year",
-    section: "Section A",
-    attendancePercentage: 85,
+    section: "Unassigned",
+    attendancePercentage: 0,
   });
 
   const filteredStudents = students.filter((s) => {
@@ -45,7 +45,11 @@ function AdminStudents() {
       courseFilter === "all" || s.course === courseFilter;
     const matchesYear = yearFilter === "all" || s.year === yearFilter;
     const matchesSection =
-      sectionFilter === "all" || s.section === sectionFilter;
+      sectionFilter === "all"
+        ? true
+        : sectionFilter === "Unassigned"
+        ? !s.section || s.section === "Unassigned" || s.section === "Not Assigned"
+        : s.section === sectionFilter;
 
     return matchesSearch && matchesCourse && matchesYear && matchesSection;
   });
@@ -56,10 +60,10 @@ function AdminStudents() {
       name: "",
       email: "",
       phone: "",
-      course: "B.Tech - CSE",
+      course: courses?.[0]?.name || "B.Tech - CSE",
       year: "2nd Year",
-      section: "Section A",
-      attendancePercentage: 85,
+      section: "Unassigned",
+      attendancePercentage: 0,
     });
     setShowAddModal(true);
   };
@@ -73,8 +77,8 @@ function AdminStudents() {
       phone: student.phone || "",
       course: student.course,
       year: student.year,
-      section: student.section,
-      attendancePercentage: student.attendancePercentage || 85,
+      section: student.section || "Unassigned",
+      attendancePercentage: student.attendancePercentage ?? 0,
     });
   };
 
@@ -164,6 +168,7 @@ function AdminStudents() {
                 onChange={(e) => setSectionFilter(e.target.value)}
               >
                 <option value="all">All Sections</option>
+                <option value="Unassigned">Not Assigned</option>
                 <option value="Section A">Section A</option>
                 <option value="Section B">Section B</option>
               </select>
@@ -214,7 +219,13 @@ function AdminStudents() {
                         {student.course} • {student.year}
                       </td>
                       <td>
-                        <span className="section-pill">{student.section}</span>
+                        {student.section &&
+                        student.section !== "Unassigned" &&
+                        student.section !== "Not Assigned" ? (
+                          <span className="section-pill">{student.section}</span>
+                        ) : (
+                          <span className="section-pill unassigned">Not Assigned</span>
+                        )}
                       </td>
                       <td>
                         <div className="contact-cell">
@@ -225,14 +236,16 @@ function AdminStudents() {
                       <td>
                         <span
                           className={`attendance-pill ${
-                            student.attendancePercentage >= 85
+                            (student.attendancePercentage ?? 0) >= 85
                               ? "high"
-                              : student.attendancePercentage >= 75
+                              : (student.attendancePercentage ?? 0) >= 75
                               ? "medium"
-                              : "low"
+                              : (student.attendancePercentage ?? 0) > 0
+                              ? "low"
+                              : "neutral"
                           }`}
                         >
-                          {student.attendancePercentage || 85}%
+                          {student.attendancePercentage ?? 0}%
                         </span>
                       </td>
                       <td>
@@ -358,9 +371,14 @@ function AdminStudents() {
                         setFormData({ ...formData, course: e.target.value })
                       }
                     >
-                      <option value="B.Tech - CSE">B.Tech - CSE</option>
-                      <option value="B.Tech - ECE">B.Tech - ECE</option>
-                      <option value="B.Sc - MPC">B.Sc - MPC</option>
+                      {(courses && courses.length > 0
+                        ? courses.map((c) => c.name)
+                        : ["B.Tech - CSE", "B.Tech - ECE", "B.Sc - MPC"]
+                      ).map((cName) => (
+                        <option key={cName} value={cName}>
+                          {cName}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className="form-group">
@@ -385,8 +403,10 @@ function AdminStudents() {
                         setFormData({ ...formData, section: e.target.value })
                       }
                     >
+                      <option value="Unassigned">Not Assigned (Unassigned)</option>
                       <option value="Section A">Section A</option>
                       <option value="Section B">Section B</option>
+                      <option value="Section C">Section C</option>
                     </select>
                   </div>
                 </div>

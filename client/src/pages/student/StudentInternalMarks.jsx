@@ -4,8 +4,9 @@ import { useCollege } from "../../context/CollegeContext";
 function StudentInternalMarks() {
   const { currentUser, internalMarks, verifiedStudentData } = useCollege();
 
-  const rollNumber = verifiedStudentData?.student?.rollNumber || currentUser?.rollNumber || "2301";
-  const marksData = internalMarks[rollNumber] || {
+  const isDemo = !verifiedStudentData?.student && (!currentUser || currentUser?.role !== "student");
+  const rollNumber = verifiedStudentData?.student?.rollNumber || currentUser?.rollNumber || (isDemo ? "2301" : "");
+  const marksData = (rollNumber && internalMarks[rollNumber]) || (isDemo ? {
     "Database Management Systems": {
       assignment: 9,
       mid1: 18,
@@ -34,7 +35,7 @@ function StudentInternalMarks() {
       quiz: 9,
       total: 38,
     },
-  };
+  } : {});
 
   const calculateGrade = (total) => {
     if (total >= 36) return { grade: "O (Outstanding)", color: "#16a34a" };
@@ -80,7 +81,18 @@ function StudentInternalMarks() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(marksData).map(([subject, m]) => {
+                {Object.keys(marksData).length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan="7"
+                      className="empty-table-cell"
+                      style={{ textAlign: "center", padding: "36px 20px", color: "#64748b" }}
+                    >
+                      No internal marks recorded yet for this student. Marks will appear once submitted by subject faculty.
+                    </td>
+                  </tr>
+                ) : (
+                  Object.entries(marksData).map(([subject, m]) => {
                   const evalGrade = calculateGrade(m.total);
                   return (
                     <tr key={subject}>
@@ -118,7 +130,7 @@ function StudentInternalMarks() {
                       </td>
                     </tr>
                   );
-                })}
+                }))}
               </tbody>
             </table>
           </div>

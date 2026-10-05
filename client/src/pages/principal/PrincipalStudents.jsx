@@ -83,20 +83,28 @@ function PrincipalStudents() {
                       {s.course} • {s.year}
                     </td>
                     <td>
-                      <span className="section-pill">{s.section}</span>
+                      {s.section &&
+                      s.section !== "Unassigned" &&
+                      s.section !== "Not Assigned" ? (
+                        <span className="section-pill">{s.section}</span>
+                      ) : (
+                        <span className="section-pill unassigned">Not Assigned</span>
+                      )}
                     </td>
                     <td>{s.email}</td>
                     <td>
                       <span
                         className={`attendance-pill ${
-                          (s.attendancePercentage || 85) >= 85
+                          (s.attendancePercentage ?? 0) >= 85
                             ? "high"
-                            : (s.attendancePercentage || 85) >= 75
+                            : (s.attendancePercentage ?? 0) >= 75
                             ? "medium"
-                            : "low"
+                            : (s.attendancePercentage ?? 0) > 0
+                            ? "low"
+                            : "neutral"
                         }`}
                       >
-                        {s.attendancePercentage || 85}%
+                        {s.attendancePercentage ?? 0}%
                       </span>
                     </td>
                   </tr>
